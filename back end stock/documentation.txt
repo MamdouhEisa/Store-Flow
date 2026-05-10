@@ -1,0 +1,171 @@
+# نظام إدارة المخزون الداخلي (Inventory Management Backend)
+
+## نظرة عامة على المشروع
+**اسم المشروع**: `inventory-management-backend`  
+**الإصدار**: `1.0.0`  
+**الوصف**: نظام إدارة مخزون داخلي احترافي على مستوى الإنتاج (Production-level Internal Inventory Management System).  
+**التقنيات الأساسية**: 
+- **Node.js** (v18+) مع **Express.js** (MVC Architecture)
+- **MongoDB** مع **Mongoose** ODM
+- **JWT Authentication** مع **bcryptjs** لتشفير كلمات المرور
+- **Role-Based Access Control (RBAC)**: `admin` و `sales`
+- **Rate Limiting**, **Validation** (Joi/Express-validator), **Helmet** للأمان
+- **Cron Jobs** للمهام التلقائية
+- **Comprehensive Logging** مع TTL indexes
+
+**نقطة الدخول**: `server.js` → `app.js` → Routes/Controllers/Models
+
+## الهيكل العام للمشروع (File Structure)
+```
+back end stock/
+├── app.js                 # Express app setup + routes
+├── server.js              # Server startup + DB connection
+├── config/
+│   ├── database.js        # MongoDB connection
+│   └── cron.js            # Scheduled tasks (low stock alerts, etc.)
+├── controllers/           # Business logic
+│   ├── authController.js
+│   ├── branchController.js
+│   ├── employeeController.js
+│   ├── logController.js
+│   ├── productController.js
+│   └── transferController.js
+├── middleware/            # Auth, validation, roles, error handling
+│   ├── auth.js            # JWT verification
+│   ├── roles.js           # RBAC (adminOnly, adminOrSales)
+│   ├── validate.js        # Joi schemas
+│   ├── error.js
+│   └── auth.js (duplicate?)
+├── models/                # Mongoose schemas
+│   ├── Branch.js
+│   ├── Employee.js
+│   ├── Log.js
+│   ├── Product.js
+│   └── Transfer.js
+├── routes/                # API endpoints
+│   ├── auth.js
+│   ├── branches.js
+│   ├── employees.js
+│   ├── logs.js
+│   ├── products.js
+│   └── transfers.js
+├── utils/                 # Helpers
+│   ├── auth.js/authhelper.js
+│   └── helpers.js
+├── package.json           # Dependencies
+├── seed.js / seed-active.js # Database seeding
+└── apis.txt / apis-updated.txt # API documentation
+```
+
+## الوظائف الرئيسية (Core Features)
+
+### 1. **إدارة المستخدمين والصلاحيات (Employee Management)**
+   - **التسجيل**: فقط `register-admin` (بدون فرع محدد)
+   - **تسجيل الدخول**: `/api/auth/login` مع rate limiting (معطل حالياً)
+   - **إنشاء/تحديث/تعطيل موظفين**: Admin فقط
+   - **أدوار**: `admin` (كامل الصلاحيات), `sales` (قراءة/تعديل محدود)
+   - **الحقول**: username, password, role, branch, isActive, soft delete
+
+### 2. **إدارة الفروع (Branch Management)**
+   - **CRUD كامل**: Admin فقط
+   - **الحقول**: name, location, soft delete (deletedBy, deletedAt)
+
+### 3. **إدارة المنتجات (Product Management)**
+   - **قراءة**: الكل (auth required)
+   - **إنشاء**: Admin فقط
+   - **تحديث كمية**: Admin + Sales (تقليل الكمية)
+   - **حذف**: Admin فقط (soft delete)
+   - **مميزات**:
+     - Indexes على `branch + quantity` لتنبيهات النقص
+     - `isLowQuantity` flag
+     - Branch-specific inventory
+
+### 4. **نقل المنتجات بين الفروع (Transfer Management)**
+   - **إنشاء طلب نقل**: Admin + Sales
+   - **عرض الطلبات**: Admin فقط
+   - **الموافقة/الرفض**: Admin فقط
+   - **الحقول**: fromBranch, toBranch, product, quantity, status (pending/approved/rejected)
+   - **Workflow**: Create → Approve/Reject → Auto-update quantities + logs
+
+### 5. **التسجيل والمراقبة (Logging)**
+   - **Admin فقط**: قراءة logs
+   - **أنواع**: CREATE, UPDATE, DELETE, TRANSFER, etc.
+   - **TTL**: 90 يوم تلقائياً
+   - **مرتبط**: user, product, branch, transfer, details (mixed)
+
+### 6. **الأمان والأداء (Security & Performance)**
+   | Feature | Status |
+   |---------|--------|
+   | JWT Auth | ✅ Active |
+   | Role-Based Access | ✅ Granular (adminOnly, adminOrSales) |
+   | Input Validation | ✅ Joi schemas |
+   | Rate Limiting | 🔓 Disabled (∞ attempts) |
+   | Helmet | ✅ CSP/Headers |
+   | CORS | ✅ Configured |
+   | Soft Deletes | ✅ All models |
+   | Indexes | ✅ Optimized queries |
+   | Error Handling | ✅ Global middleware |
+
+## API Endpoints (Summary)
+```
+Base URL: http://localhost:5000/api
+
+AUTH (Public):
+POST /auth/login
+POST /auth/register-admin
+
+EMPLOYEES (Admin only):
+POST /employees
+GET  /employees
+PUT  /employees/:id
+PATCH /employees/:id/disable
+
+BRANCHES (Admin only):
+POST /branches
+GET  /branches
+PUT  /branches/:id
+DELETE /branches/:id
+
+PRODUCTS (Auth required):
+GET  /products           # All
+POST /products           # Admin
+PUT  /products/:id       # Admin + Sales (quantity only)
+DELETE /products/:id     # Admin
+
+TRANSFERS (Auth required):
+POST /transfers          # Admin + Sales
+GET  /transfers          # Admin
+PATCH /transfers/:id/approve  # Admin
+PATCH /transfers/:id/reject   # Admin
+
+LOGS (Admin only):
+GET /logs
+```
+
+## الاعتماديات الرئيسية (Key Dependencies)
+```
+Production:
+├── express@4.19.2
+├── mongoose@8.6.1
+├── jsonwebtoken@9.0.2
+├── bcryptjs@2.4.3
+├── joi@17.13.3
+├── express-rate-limit@7.4.0
+├── helmet@7.1.0
+└── node-cron@3.0.3
+
+Dev:
+├── nodemon@3.1.4
+```
+
+## تشغيل المشروع
+```bash
+# تثبيت الاعتماديات
+npm install
+
+# تشغيل التطوير
+npm run dev
+
+# الإنتاج
+npm start
+

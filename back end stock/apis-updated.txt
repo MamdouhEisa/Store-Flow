@@ -1,0 +1,60 @@
+## 📋 كل APIs في المشروع (Stock Management System)
+
+### 🔐 **Auth APIs** `/api/auth`
+| Method | Endpoint | Permissions | Request Body | Response | Description |
+|--------|----------|-------------|-------------|----------|-------------|
+| `POST` | `/register-admin` | **Public** (مرة واحدة) | `{username, password}` | `{token, admin}` | **تسجيل أول أدمن** (branch auto Main) |
+| `POST` | `/login` | Public | `{username, password}` | `{token, employee}` | تسجيل دخول |
+
+### 👥 **Employees** `/api/employees` (Admin Only)
+| Method | Endpoint | Permissions | Request Body | Response | Description |
+|--------|----------|-------------|-------------|----------|-------------|
+| `POST` | `/` | Admin | `{username, password, role, branch? = "branch location" }` | `{employee}` | إنشاء موظف (admin auto Main) |
+| `GET` | `/` | Admin | - | `{employees[]}` | جلب كل الموظفين |
+| `PUT` | `/:id` | Admin | `{username?, password?, ...}` | `{employee}` | تعديل موظف |
+| `PATCH` | `/:id/disable` | Admin | - | `{message}` | تعطيل موظف |
+
+### 🏪 **Branches** `/api/branches` (Admin Only)
+| Method | Endpoint | Permissions | Request Body | Response | Description |
+|--------|----------|-------------|-------------|----------|-------------|
+| `POST` | `/` | Admin | `{name, location}` | `{branch}` | إنشاء فرع |
+| `GET` | `/` | Admin | - | `{branches[]}` | جلب الفروع |
+| `PUT` | `/:id` | Admin | `{name?, location?}` | `{branch}` | تعديل فرع |
+| `DELETE` | `/:id` | Admin | - | `{message}` | حذف فرع (soft) |
+
+### 📦 **Products** `/api/products`
+| Method | Endpoint | Permissions | Request Body | Response | Description |
+|--------|----------|-------------|-------------|----------|-------------|
+| `GET`  |    `/`   | Auth        | `?page=1&limit=10` | `{products[], alerts[]?}` | جلب المنتجات (Sales: فرعهم بس) |
+| `POST` |   `/`    | **Admin**   | `{name, quantity, branch = "location"}` | `{product}` | إنشاء منتج |
+| `PUT`  |   `/:id` | Auth        | `{quantity?}` | `{product}` | تعديل (Sales: تقليل كمية بس) |
+| `DELETE`| `/:id`  | **Admin**   | - | `{message}` | حذف منتج (soft) |
+
+### 🔄 **Transfers** `/api/transfers`
+| Method | Endpoint | Permissions | Request Body | Response | Description |
+|--------|----------|-------------|-------------|----------|-------------|
+| `POST` | `/`      | Auth        | `{fromBranch = "location", toBranch = "location", product, quantity}` | `{transfer}` | طلب نقل |
+| `GET`  | `/`      | **Admin**   | -           | `{transfers[]}` | جلب الطلبات |
+| `PATCH`| `/:id/approve`| **Admin** | -        | `{transfer}` | الموافقة + نقل الكمية |
+| `PATCH`| `/:id/reject` | **Admin** | -        | `{transfer}` | الرفض |
+
+### 📋 **Logs** `/api/logs` (Admin Only)
+| Method | Endpoint | Permissions | Request Body | Response | Description |
+|--------|----------|-------------|-------------|----------|-------------|
+| `GET` | `/` | Admin | `?action=login&page=1` | `{logs[]}` | جلب السجلات (تصفية + pagination) |
+
+---
+
+## 🚀 **كيف تبدأ:**
+```bash
+1. npm start
+2. POST /api/auth/register-admin {username: "admin", password: "admin123"}
+3. Copy token → Authorization: Bearer TOKEN
+```
+
+**كل الـ APIs جاهزة ومحمية!** 🎉
+
+**Base URL:** `http://localhost:5000`
+**Headers:** `Authorization: Bearer TOKEN`, `Content-Type: application/json`
+**Branch:** location string (e.g. "cairo", "Headquarters")
+**Product ID:** ObjectId from response
