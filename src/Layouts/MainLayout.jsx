@@ -1,4 +1,4 @@
-﻿import { Outlet } from "react-router-dom";
+import { Outlet, useNavigate } from "react-router-dom";
 import Navbar from "../Components/Navbar";
 import { useAuth } from "../auth/AuthContext";
 
@@ -14,6 +14,7 @@ function formatRoleLabel(role) {
 
 export default function MainLayout() {
   const { role } = useAuth();
+  const navigate = useNavigate();
   const roleLabel = formatRoleLabel(role);
 
   const handleRoleButtonClick = () => {
@@ -25,6 +26,7 @@ export default function MainLayout() {
       <Navbar
         showAdmin
         adminLabel={roleLabel}
+        routerNavigate={navigate}
         onAdminClick={handleRoleButtonClick}
       />
       <Outlet />

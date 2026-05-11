@@ -16,6 +16,17 @@ const BASE_ITEMS = [
   { key: "settings", label: "Settings", href: "/settings", icon: SettingsIcon },
 ];
 
+function getCurrentRoutePath() {
+  if (typeof window === "undefined") return "/";
+
+  const hash = window.location.hash || "";
+  if (hash.startsWith("#/")) {
+    return hash.slice(1).split("?")[0];
+  }
+
+  return window.location.pathname || "/";
+}
+
 export default function Navbar({
   items,
   initialActiveKey = "home",
@@ -34,7 +45,7 @@ export default function Navbar({
   const [activeKey, setActiveKey] = useState(() => {
     if (typeof window === "undefined") return initialActiveKey;
 
-    const currentPath = window.location.pathname;
+    const currentPath = getCurrentRoutePath();
     const matched = navItems.find((item) => item.href === currentPath);
     return matched?.key || initialActiveKey;
   });
@@ -58,7 +69,7 @@ export default function Navbar({
       return;
     }
 
-    if (href !== window.location.pathname) {
+    if (href !== getCurrentRoutePath()) {
       window.location.assign(href);
     }
   };
@@ -85,13 +96,18 @@ export default function Navbar({
 
   useEffect(() => {
     const syncActiveItem = () => {
-      const currentPath = window.location.pathname;
+      const currentPath = getCurrentRoutePath();
       const matched = navItems.find((item) => item.href === currentPath);
       setActiveKey(matched?.key || initialActiveKey);
     };
 
     window.addEventListener("popstate", syncActiveItem);
-    return () => window.removeEventListener("popstate", syncActiveItem);
+    window.addEventListener("hashchange", syncActiveItem);
+
+    return () => {
+      window.removeEventListener("popstate", syncActiveItem);
+      window.removeEventListener("hashchange", syncActiveItem);
+    };
   }, [navItems, initialActiveKey]);
 
   useEffect(() => {
@@ -129,16 +145,17 @@ export default function Navbar({
     >
       <div className="mx-auto w-full max-w-290 px-4 sm:px-6">
         <div className="grid items-center gap-4 md:grid-cols-[1fr_auto_1fr]">
-          <a
-            href="/home"
-            className="inline-flex items-center gap-2 justify-self-start text-[#ff7a1a]"
+          <button
+            type="button"
+            onClick={() => resolveDefaultNavigate("/home")}
+            className="inline-flex items-center gap-2 justify-self-start border-0 bg-transparent p-0 text-[#ff7a1a]"
             aria-label="StoreFlow home"
           >
             <StoreIcon />
             <span className="text-[30px] font-bold leading-none tracking-[0.2px] sm:text-[34px]">
               Stor<em className="not-italic">eFlow</em>
             </span>
-          </a>
+          </button>
 
           <nav
             aria-label="Primary navigation"
