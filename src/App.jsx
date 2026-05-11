@@ -1,4 +1,4 @@
-﻿import { Navigate, createBrowserRouter, RouterProvider } from "react-router-dom";
+import { Navigate, createHashRouter, RouterProvider } from "react-router-dom";
 import "./App.css";
 import NotFound from "./Components/Notfound";
 import ProtectedRoute from "./Components/ProtectedRoute";
@@ -35,7 +35,7 @@ import Sales from "./Pages/Sales";
 import Settings from "./Pages/settings";
 import Signup from "./Pages/Signup";
 
-const router = createBrowserRouter([
+const router = createHashRouter([
   { path: "/", element: <Navigate to="/login" replace /> },
   {
     element: (
@@ -119,3 +119,4 @@ function App() {
 }
 
 export default App;
+
