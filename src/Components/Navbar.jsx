@@ -1,4 +1,7 @@
 ﻿import { useEffect, useMemo, useState } from "react";
+import { LogOut } from "lucide-react"; // تم التأكد من الاستيراد
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../auth/AuthContext";
 
 const BASE_ITEMS = [
   { key: "home", label: "Home", href: "/home", icon: HomeIcon, showLabel: true },
@@ -37,6 +40,9 @@ export default function Navbar({
   showAdmin = false,
   adminLabel = "Admin",
 }) {
+  const { logout } = useAuth(); // استدعاء دالة logout
+  const navigate = useNavigate(); // استدعاء navigate
+
   const navItems = useMemo(
     () => (Array.isArray(items) && items.length > 0 ? items : BASE_ITEMS),
     [items]
@@ -50,6 +56,12 @@ export default function Navbar({
     return matched?.key || initialActiveKey;
   });
   const [isNavbarHidden, setIsNavbarHidden] = useState(false);
+
+  // دالة تسجيل الخروج
+  const handleLogout = () => {
+    logout();
+    navigate("/login");
+  };
 
   const resolveDefaultNavigate = (href) => {
     if (!href || typeof window === "undefined") return;
@@ -139,7 +151,7 @@ export default function Navbar({
   return (
     <header
       className={[
-        "sticky top-0 z-50/90 pt-6 pb-7 backdrop-blur-sm transition-transform duration-300 ease-out",
+        "sticky top-0 z-50 pt-6 pb-7 backdrop-blur-sm transition-transform duration-300 ease-out",
         isNavbarHidden ? "-translate-y-[120%] pointer-events-none" : "translate-y-0",
       ].join(" ")}
     >
@@ -201,22 +213,37 @@ export default function Navbar({
             })}
           </nav>
 
-          {showAdmin ? (
+          {/* الجزء الخاص بالأدمن والـ Logout */}
+          <div className="flex items-center gap-2 justify-self-end">
+            {showAdmin && (
+              <button
+                type="button"
+                title={adminLabel}
+                aria-label={adminLabel}
+                onClick={handleAdmin}
+                className="h-14 min-w-14 rounded-2xl border border-[#ff7a1a]/25 bg-white px-3 text-[#ff7a1a] shadow-[0_10px_24px_rgba(13,18,25,0.08)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#fff8f2] hover:shadow-[0_12px_30px_rgba(255,122,26,0.2)] active:translate-y-0 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ff7a1a]/60 focus-visible:ring-offset-2"
+              >
+                <span className="flex items-center gap-2">
+                  <AdminIcon />
+                  <span className="hidden text-xs font-semibold sm:inline">{adminLabel}</span>
+                </span>
+              </button>
+            )}
+
+            {/* زر الـ Logout الجديد */}
             <button
               type="button"
-              title={adminLabel}
-              aria-label={adminLabel}
-              onClick={handleAdmin}
-              className="h-14 min-w-14 justify-self-end rounded-2xl border border-[#ff7a1a]/25 bg-white px-3 text-[#ff7a1a] shadow-[0_10px_24px_rgba(13,18,25,0.08)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#fff8f2] hover:shadow-[0_12px_30px_rgba(255,122,26,0.2)] active:translate-y-0 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ff7a1a]/60 focus-visible:ring-offset-2"
+              title="Logout"
+              aria-label="Logout"
+              onClick={handleLogout}
+              className="h-14 min-w-14 rounded-2xl border border-red-100 bg-white px-3 text-red-500 shadow-[0_10px_24px_rgba(13,18,25,0.08)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-red-50 hover:shadow-[0_12px_30px_rgba(235,87,87,0.15)] active:translate-y-0 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/60 focus-visible:ring-offset-2"
             >
               <span className="flex items-center gap-2">
-                <AdminIcon />
-                <span className="hidden text-xs font-semibold sm:inline">{adminLabel}</span>
+                <LogOut size={20} />
+                <span className="hidden text-xs font-semibold sm:inline">Logout</span>
               </span>
             </button>
-          ) : (
-            <div className="h-14 w-14 justify-self-end" />
-          )}
+          </div>
         </div>
       </div>
 
@@ -224,6 +251,8 @@ export default function Navbar({
     </header>
   );
 }
+
+// ... بقية دوال الأيقونات (IconSvg, StoreIcon, إلخ) كما هي ...
 
 function IconSvg({ children }) {
   return (
