@@ -6,6 +6,7 @@ import * as zod from "zod";
 import { Mail, Lock, Eye, EyeOff, Store } from "lucide-react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
+import loginImage from "../assets/login image.jpg";
 
 const schema = zod.object({
   email: zod
@@ -64,7 +65,7 @@ export default function Login() {
     <div className="min-h-screen grid lg:grid-cols-2 bg-gray-100">
       <div className="hidden lg:block relative">
         <img
-          src="/src/assets/login image.jpg"
+          src={loginImage}
           alt="Login"
           className="absolute inset-0 w-full h-full object-cover"
         />

@@ -6,6 +6,7 @@ import * as zod from "zod";
 import { Mail, User, Lock, Eye, EyeOff, Phone, Store } from "lucide-react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
+import signupImage from "../assets/signup image.jpg";
 
 const schema = zod
   .object({
@@ -88,7 +89,7 @@ export default function Signup() {
     <div className="min-h-screen grid lg:grid-cols-2 bg-gray-100">
       <div className="hidden lg:block relative">
         <img
-          src="/src/assets/signup image.jpg"
+          src={signupImage}
           alt="Signup"
           className="absolute inset-0 w-full h-full object-cover"
         />
